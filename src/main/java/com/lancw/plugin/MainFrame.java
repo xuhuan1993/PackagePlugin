@@ -10,42 +10,16 @@
  */
 package main.java.com.lancw.plugin;
 
-import com.datePicker.DatePicker;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import main.java.com.lancw.action.ActionListenerImpl;
-import main.java.com.lancw.action.ListSelectionListenerImpl;
-import main.java.com.lancw.handler.AnnotationInvocationHandler;
-import main.java.com.lancw.model.HttpConfig;
-import main.java.com.lancw.model.SvnFilePath;
-import main.java.com.lancw.util.EncodeUtils;
-import main.java.com.lancw.util.FileUtil;
-import main.java.com.lancw.util.FormatUtil;
-import main.java.com.lancw.util.PropertiesUtil;
-import main.java.com.lancw.util.SerializableUtil;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Point;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.net.URLEncoder;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -55,24 +29,23 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import static javax.swing.JFrame.EXIT_ON_CLOSE;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
@@ -88,10 +61,6 @@ import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
 import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.commons.httpclient.methods.multipart.StringPart;
 import org.apache.commons.httpclient.params.HttpMethodParams;
-import org.dom4j.Document;
-import org.dom4j.Element;
-import org.dom4j.io.OutputFormat;
-import org.dom4j.io.SAXReader;
 import org.pushingpixels.substance.api.SubstanceLookAndFeel;
 import org.pushingpixels.substance.api.skin.CremeCoffeeSkin;
 import org.tmatesoft.svn.core.ISVNLogEntryHandler;
@@ -105,6 +74,25 @@ import org.tmatesoft.svn.core.internal.wc.DefaultSVNOptions;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNLogClient;
 import org.tmatesoft.svn.core.wc.SVNRevision;
+
+import com.datePicker.DatePicker;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+
+import main.java.com.lancw.action.ActionListenerImpl;
+import main.java.com.lancw.action.ListSelectionListenerImpl;
+import main.java.com.lancw.handler.AnnotationInvocationHandler;
+import main.java.com.lancw.model.HttpConfig;
+import main.java.com.lancw.model.SvnFilePath;
+import main.java.com.lancw.util.EncodeUtils;
+import main.java.com.lancw.util.FileUtil;
+import main.java.com.lancw.util.FormatUtil;
+import main.java.com.lancw.util.PropertiesUtil;
+import main.java.com.lancw.util.SerializableUtil;
 
 /**
  *
@@ -128,7 +116,6 @@ public class MainFrame extends javax.swing.JFrame {
 	private final JFileChooser jfc = new JFileChooser();
 	private final List<String> logs = new ArrayList<String>();
 	private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-	private final File tmpDir = new File(System.getProperty("user.dir") + "/" + "temp");
 	private static final Set<SvnFilePath> SVNFILEPATHS = new LinkedHashSet<SvnFilePath>();
 	public static final Logger LOGGER = Logger.getLogger(MainFrame.class.getName());
 	private final HashMap<Long, Map<String, SVNLogEntryPath>> detailData = new LinkedHashMap<Long, Map<String, SVNLogEntryPath>>();
@@ -160,7 +147,7 @@ public class MainFrame extends javax.swing.JFrame {
 				sdf.applyPattern("yyyy-MM-dd");
 
 				endDate.setText(sdf.format(c.getTime()));
-				c.add(Calendar.DATE, -3);
+				c.add(Calendar.DATE, -2);
 				beginDate.setText(sdf.format(c.getTime()));
 
 				historyList.setModel(new DefaultListModel());
@@ -176,12 +163,8 @@ public class MainFrame extends javax.swing.JFrame {
 				isWebProject.setSelected(Boolean.valueOf(PropertiesUtil.getProperty(IS_WEB_PROJECT, "true")));
 				rootNameProject.setSelected(Boolean.valueOf(PropertiesUtil.getProperty(IS_ADD_PROJECT_NAME, "false")));
 				createFileList.setSelected(Boolean.valueOf(PropertiesUtil.getProperty(IS_CREATE_FILE_LIST, "true")));
-				xmlToInf.setSelected(Boolean.valueOf(PropertiesUtil.getProperty(IS_XML_TO_WEB_INF, "true")));
+				xmlToInf.setSelected(Boolean.valueOf(PropertiesUtil.getProperty(IS_XML_TO_WEB_INF, "false")));
 				detailTable.getColumnModel().getColumn(0).setPreferredWidth(600);
-				if (!tmpDir.exists()) {
-					tmpDir.mkdir();
-				}
-				clearTemp();
 				ButtonGroup bg1 = new ButtonGroup();
 				bg1.add(radioDES3);
 				bg1.add(radioMD5);
@@ -296,18 +279,6 @@ public class MainFrame extends javax.swing.JFrame {
 		SVNFILEPATHS.add(path);
 	}
 
-	/**
-	 * 清空临时目录
-	 */
-	private void clearTemp() {
-		for (File file : tmpDir.listFiles()) {
-			if (file.isFile()) {
-				file.delete();
-			} else {
-				FileUtil.deleteDirectory(file.getAbsolutePath());
-			}
-		}
-	}
 
 	/**
 	 * 初始化日志记录
@@ -641,11 +612,11 @@ public class MainFrame extends javax.swing.JFrame {
 
 		isWebProject.setSelected(true);
 		isWebProject.setText("class打包到WEB-INF");
+		isWebProject.setVisible(false);
 
 		rootNameProject.setText("根路径为项目名");
 
-		xmlToInf.setText("xml打包到WEB-INF");
-		xmlToInf.setToolTipText("放置在包路径中的xml文件是否也按包路径打包");
+		xmlToInf.setText("生成脚本（功能暂未实现）");
 
 		createFileList.setText("生成说明文件");
 		createFileList.setToolTipText("生成打包的说明文件到txt");
@@ -724,15 +695,15 @@ public class MainFrame extends javax.swing.JFrame {
 																				.addComponent(rootNameProject)
 																				.addPreferredGap(
 																						javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-																				.addComponent(isWebProject))
+																				.addComponent(isWebProject)
+																				.addPreferredGap(
+																						javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+																				.addComponent(createFileList))
 																		.addGroup(jPanel1Layout.createSequentialGroup()
 																				.addComponent(jLabel17)
 																				.addPreferredGap(
 																						javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-																				.addComponent(logFilterName)))
-																.addPreferredGap(
-																		javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-																.addComponent(createFileList))
+																				.addComponent(logFilterName))))
 														.addGroup(jPanel1Layout.createSequentialGroup()
 																.addGroup(jPanel1Layout
 																		.createParallelGroup(
@@ -1561,7 +1532,6 @@ public class MainFrame extends javax.swing.JFrame {
 			int cot = detailTable.getModel().getRowCount();
 			DefaultTableModel mod = (DefaultTableModel) detailTable.getModel();
 			SVNFILEPATHS.clear();
-			clearTemp();
 			String[] paths = path.getText().split(";");
 			if (sel.length > 0) {
 				for (int i : sel) {
@@ -1591,49 +1561,51 @@ public class MainFrame extends javax.swing.JFrame {
 			if (createFileList.isSelected()) {
 				String from = System.getProperty("user.dir") + "/说明.txt";
 				String to = jarfile + "/说明.txt";
-				FileUtil.newCopy(from, to);
+				FileUtil.copy(from, to);
 			}
 			count = 0;
 			innerClass = 0;
 			for (SvnFilePath sfp : SVNFILEPATHS) {
-				String str = sfp.getLocalFilePath();
+				String str = sfp.getPath();
 				if (str == null) {
-					updateInfo("文件不存在或为目录：" + sfp.getPath());
+					updateInfo("文件不存在或为目录：" + str);
 					continue;
-				}
-				if (str.endsWith(".classpath") || str.endsWith(".project") || str.endsWith(".mymetadata") || str.endsWith(".bak")) {
-					updateInfo("已忽略文件：" + str);
-					continue;
-				}
-				if (str.indexOf("temp") > 0) {
-					str = str.substring(str.indexOf("temp") + 5, str.length());
 				}
 				if (isWebProject.isSelected()) {
-					if (str.contains(".class") || str.contains(".properties")) {
-						str = "Liems/WEB-INF/classes/" + str;
-					}
+					
 				}
 				if (xmlToInf.isSelected()) {
-					if (str.contains(".xml") && !str.contains("/B1")) {// 程序号对应的xml除外
-						str = "Liems/WEB-INF/classes/" + str;
-					}
-				}
-				if (!str.startsWith("Liems/")) {
-					str = "Liems/WEB-INF/classes/" + str;
+					
 				}
 				if (rootNameProject.isSelected()) {
 					str = projectPath.getName() + "/" + str;
 				}
-				updateInfo("正在创建：" + str.replace("\\", "/") + (str.contains("$") ? "[内部类]" : ""));
+				updateInfo("正在创建：" + str.replace("\\", "/") );
 				String path = jarfile + File.separator + str;
-				FileUtil.newCopy(sfp.getLocalFilePath(), path);
+				FileUtil.copy(sfp.getLocalFilePath(), path);
 				count++;
-				if (str.contains("$")) {
-					innerClass++;
+				
+				File f = new File(sfp.getLocalFilePath());
+				if (f.isFile()) {
+					File sp = f.getParentFile();
+					String name = f.getName();
+					if (name.contains(".class")) {
+						name = name.substring(0, name.indexOf('.'));
+						for (File file : sp.listFiles()) {
+							if (file.isFile()) {
+								if (file.getName().contains(name + "$")) {// 将内部类一并复制
+									String tgFile = new File(path).getParentFile().getAbsolutePath() + "/" + file.getName();
+									updateInfo("正在创建：" + str.replace("\\", "/").substring(0, str.lastIndexOf("/") + 1) + file.getName() + "[内部类]" );
+									FileUtil.copy(file.getAbsolutePath(), tgFile);
+									innerClass++;
+								}
+							}
+						}
+					}
 				}
 				Thread.sleep(10);
 			}
-			updateInfo("打包成功：" + jarfile.replace("\\", "/") + " 共计：" + count + "个文件,其中包含" + (count - innerClass) + "个文件" + innerClass + "个内部类，用时" + (System.currentTimeMillis() - time) + "毫秒");
+			updateInfo("打包成功：" + jarfile.replace("\\", "/") + " 共计：" + (count + innerClass) + "个文件,其中包含" + count + "个文件" + innerClass + "个内部类，用时" + (System.currentTimeMillis() - time) + "毫秒");
 		} catch (Exception e) {
 			FileUtil.deleteDirectory(jarfile);
 			LOGGER.log(Level.SEVERE, null, e);

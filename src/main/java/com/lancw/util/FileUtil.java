@@ -131,53 +131,15 @@ public class FileUtil {
      * @param t 目标路径
      * @return 目标路径
      */
-    public static String copy(String s, String t) {
-        File f = new File(s);
-        if (f.isDirectory() || !f.isFile()) {
-            MainFrame.updateInfo("忽略目录或不存在的文件：" + s);
-            return "";
-        }
-        File sp = f.getParentFile();
-        String name = f.getName();
-        name = name.substring(0, name.indexOf('.'));
-        for (File file : sp.listFiles()) {
-            if (file.isFile()) {
-                if (file.getName().contains(name + "$")) {//将内部类一并复制
-                    String tgFile = new File(t).getParentFile().getAbsolutePath() + "/" + file.getName();
-                    String tgp = fileChannelCopy(file.getAbsolutePath(), tgFile);
-                    MainFrame.addFilePath(new SvnFilePath(tgp, null));
-                }
-            }
-        }
-        return fileChannelCopy(s, t);
-    }
+	public static String copy(String s, String t) {
+		File f = new File(s);
+		if (f.isDirectory() || !f.isFile()) {
+			MainFrame.updateInfo("忽略目录或不存在的文件：" + s);
+			return "";
+		}
+		return fileChannelCopy(s, t);
+	}
     
-    /**
-     * 复制文件
-     *
-     * @param s 源路径
-     * @param t 目标路径
-     * @return 目标路径
-     */
-    public static String newCopy(String s, String t) {
-        File f = new File(s);
-        if (f.isDirectory() || !f.isFile()) {
-            MainFrame.updateInfo("忽略目录或不存在的文件：" + s);
-            return "";
-        }
-        File sp = f.getParentFile();
-        String name = f.getName();
-        name = name.substring(0, name.indexOf('.'));
-        for (File file : sp.listFiles()) {
-            if (file.isFile()) {
-                if (file.getName().contains(name + "$")) {//将内部类一并复制
-                    String tgFile = new File(t).getParentFile().getAbsolutePath() + "/" + file.getName();
-                    fileChannelCopy(file.getAbsolutePath(), tgFile);
-                }
-            }
-        }
-        return fileChannelCopy(s, t);
-    }
 
     /**
      * 通过文件隧道复制文件
